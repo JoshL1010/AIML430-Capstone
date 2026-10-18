@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+# Source corpora are not redistributed (licensing); see README.
+data/raw/*
+data/processed/*
+data/generated/*
+!data/generated/frontier/
+!data/generated/frontier.csv
+!data/**/.gitkeep
+# Report working files (not part of the submission)
+paper/report_outline.md
+paper/references.md
+paper/figure_kit/
+paper/report/figures_python_backup/
+paper/report/main.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
