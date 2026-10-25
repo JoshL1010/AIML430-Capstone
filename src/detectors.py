@@ -22,11 +22,7 @@ CHUNK = 64  # This limits how many positions are processed at once to save memor
 
 # This function picks the fastest available device, trying the Apple GPU, then an NVIDIA GPU, then the CPU.
 def pick_device() -> str:
-    if torch.backends.mps.is_available():
-        return "mps"
-    if torch.cuda.is_available():
-        return "cuda"
-    return "cpu"
+    return "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
 
 
 # This function loads a tokenizer and language model in evaluation mode, using half precision (bfloat16) on a GPU to halve memory use.
@@ -61,8 +57,7 @@ class DetectorSuite:
     def _logits(self, text: str, model):
         enc = self.tokenizer(text, return_tensors="pt", truncation=True,
                              max_length=MAX_TOKENS).to(self.device)
-        logits = model(**enc).logits[0]
-        return logits[:-1], enc.input_ids[0, 1:]
+        return model(**enc).logits[0, :-1], enc.input_ids[0, 1:]
 
     # This method computes every score from one forward pass per model. The statistics are accumulated in chunks of positions, because a full probability table (512 tokens x 152k vocabulary) would not fit in memory.
     @torch.no_grad()
@@ -70,8 +65,7 @@ class DetectorSuite:
         base_logits, labels = self._logits(text, self.base)
         inst_logits, _ = self._logits(text, self.instruct)
 
-        token_ll, expected_ll, variance, entropy = [], 0.0, 0.0, 0.0
-        inst_ll, cross_entropy = [], 0.0
+        token_ll, inst_ll, expected_ll, variance, entropy, cross_entropy = [], [], 0.0, 0.0, 0.0, 0.0
         for i in range(0, len(labels), CHUNK):
             lab = labels[i:i + CHUNK].unsqueeze(-1)
             log_p = F.log_softmax(base_logits[i:i + CHUNK].float(), dim=-1)

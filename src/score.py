@@ -17,8 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # This function measures vocabulary diversity (the type-token ratio), which is the share of words in a text that are distinct. It is used to explain why some human writing looks machine-like.
 def type_token_ratio(text: str) -> float:
-    words = [w.lower().strip(".,!?;:\"'()") for w in text.split()]
-    words = [w for w in words if w]
+    words = [w for w in (x.lower().strip(".,!?;:\"'()") for x in text.split()) if w]
     return len(set(words)) / len(words) if words else 0.0
 
 
